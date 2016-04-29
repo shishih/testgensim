@@ -51,7 +51,7 @@ def setwordwindow(windowsize):
                 fwrite.write(fstr)
 
 
-def teintersect(windowsize): 
+def intersect(windowsize): 
     # merged OK!   
     # syn0 !
     windowsize=40
@@ -67,7 +67,7 @@ def teintersect(windowsize):
     setwordwindow(windowsize)
     Word2Vec.intersect_word2vec_format(model,'corpus/initindex'+str(windowsize),binary=False)
     print 'finish intersect'
-    model.save_word2vec_format('temerged', binary=False)
+    model.save_word2vec_format('corpus/merged'=str(windowsize), binary=False)
     # model=Word2Vec.load_word2vec_format('temerged',binary=False)
 
 
@@ -85,7 +85,7 @@ def teintersect(windowsize):
     model.corpus_count=sensum
 
     # Word2Vec.reset_weights(model)
-    sentences=LineSentence('partseganswer')
+    sentences=LineSentence('corpus/fieldcorpus')
     
     model.iter=1
     model.train(sentences)
@@ -97,14 +97,14 @@ def teintersect(windowsize):
 
     # train_batch_sg(model, sentences, alpha=0.1,work=None)
     # simply use train and set iter=1?
-    model.save('mergedtrained.model')
-    model.save_word2vec_format('temergedtrained'+str(window), binary=False)
+    model.save('mergedtrained'+str(windowsize)+'.model')
+    model.save_word2vec_format('mergedtrained'+str(windowsize), binary=False)
 
 
 def main():
     # te()
     # teword()
-    # teintersect(40)
+    intersect(40)
     # setwordwindow(40)
     
 
