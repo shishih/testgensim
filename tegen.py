@@ -36,30 +36,36 @@ def teword():
     Word2Vec.train_batch_sg(model, sentences, alpha, work=None)
 
 def setwordwindow(windowsize):
-    tmpstr=u' 1'*windowsize
+    tmpstrp=' 1'*windowsize
+    tmpstrn=' -1'*windowsize
     
-    files=['positive.txt','negative.txt']
-    for file in files:
-        with open(file+str(windowsize),'a') as fwrite:
-            with open(file) as fp:
-                for col in fp:
-                    fwrite.write(col+tmpstr)
-                
+    files=['corpus/positive','corpus/negative']
+    with open('corpus/initindex'+str(windowsize),'w+') as fwrite:       
+        with open(files[0]) as fp:
+            for col in fp:
+                fstr=col[:-1]+tmpstrp+'\n'
+                fwrite.write(fstr)
+        with open(files[1]) as fp:
+            for col in fp:
+                fstr=col[:-1]+tmpstrn+'\n'
+                fwrite.write(fstr)
 
-def teintersect(): 
+
+def teintersect(windowsize): 
     # merged OK!   
     # syn0 !
-    window=40
-    model=Word2Vec(size=40,min_count=2,sg=1)
+    windowsize=40
+    model=Word2Vec(size=windowsize,min_count=2,sg=1)
 
-    sentences=LineSentence('parttotrain')
+    sentences=LineSentence('corpus/precorpus')
     model.build_vocab(sentences)
     model.train(sentences)
     print 'finish pre-train'
     # print model.syn0,model.syn0_lockf
     
     # intersect does not delete the bibary tree, but load does
-    Word2Vec.intersect_word2vec_format(model,'initindex.txt',binary=False)
+    setwordwindow(windowsize)
+    Word2Vec.intersect_word2vec_format(model,'corpus/initindex'+str(windowsize),binary=False)
     print 'finish intersect'
     model.save_word2vec_format('temerged', binary=False)
     # model=Word2Vec.load_word2vec_format('temerged',binary=False)
@@ -98,7 +104,8 @@ def teintersect():
 def main():
     # te()
     # teword()
-    # teintersect()
+    # teintersect(40)
+    # setwordwindow(40)
     
 
 if __name__ == '__main__':
