@@ -7,7 +7,8 @@ from gensim.models.word2vec import train_batch_sg
 import numpy
 from collections import Counter
 import re
-# from gensim.models.word2vec_inner import train_batch_sg
+from sklearn.cross_validation import train_test_split
+
 
 def te():
     documents=[u"今天 天气 真是 好 啊",u"明天 就要 下雨 了，伐 开心"]
@@ -116,7 +117,15 @@ def intersect(windowsize):
     model.save_word2vec_format('corpus/mergedtrained'+str(windowsize)+'iter'+str(model.iter), binary=False)
 
 def dis(model):
-    print model.similarity("今天","坏")
+    print model.similarity("今天","在")
+
+def classify():
+    with open('corpus/testclass.txt') as fp:
+        for i in fp:
+            cla=i[0]
+            record=i[2:-1]
+            print cla
+            print record
 
 def main():
     # te()
@@ -124,8 +133,9 @@ def main():
     # intersect(40)
     # setwordwindow(40)
     # Word2Vec.load_word2vec_format('corpus/initindex40',binary=False)
-    model=Word2Vec.load('corpus/mergedtrained40iter1.model')
-    dis(model)
+    # model=Word2Vec.load('corpus/mergedtrained40iter1.model')
+    # dis(model)
+    classify()
     
 
 if __name__ == '__main__':
