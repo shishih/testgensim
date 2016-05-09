@@ -4,10 +4,12 @@ from gensim import corpora, models, similarities
 from gensim.models.word2vec import Word2Vec
 from gensim.models.word2vec import LineSentence
 from gensim.models.word2vec import train_batch_sg
-import numpy
+import numpy as np
 from collections import Counter
 import re
 from sklearn.cross_validation import train_test_split
+import jieba
+import jieba.posseg as pseg
 
 
 def te():
@@ -121,11 +123,15 @@ def dis(model):
 
 def classify():
     with open('corpus/testclass.txt') as fp:
+        # print fp.readlines()[0]
+        xl=[]
+        yl=[]
         for i in fp:
-            cla=i[0]
-            record=i[2:-1]
-            print cla
-            print record
+            yl.append(int(i[0]))
+            xl.append(i[2:-1].split(' ')) 
+    y=np.array(yl)
+    x=np.array(xl)
+    print y
 
 def main():
     # te()
