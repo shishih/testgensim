@@ -8,8 +8,7 @@ import numpy as np
 from collections import Counter
 import re
 from sklearn.cross_validation import train_test_split
-import jieba
-import jieba.posseg as pseg
+from sklearn.linear_model import SGDClassifier
 
 
 def te():
@@ -40,14 +39,14 @@ def teword():
     Word2Vec.intersect_word2vec_format(model,'fieldvec.bin',binary=False)
     Word2Vec.train_batch_sg(model, sentences, alpha, work=None)
 
-def setwordwindow(windowsize):
-    tmpstrp=' 1'*windowsize
-    tmpstrn=' -1'*windowsize
+def setwordwindow(vectorsize):
+    tmpstrp=' 1'*vectorsize
+    tmpstrn=' -1'*vectorsize
     pattern=re.compile(r' ')
     
     files=['corpus/positive','corpus/negative']
-    with open('corpus/initindex'+str(windowsize),'w+') as fwrite:
-        fwrite.write('15289 '+str(windowsize)+'\n')      
+    with open('corpus/initindex'+str(vectorsize),'w+') as fwrite:
+        fwrite.write('15289 '+str(vectorsize)+'\n')      
         with open(files[0]) as fp:
             datap=fp.readlines()
             print datap
@@ -70,25 +69,25 @@ def setwordwindow(windowsize):
                 fwrite.write('\n')
 
 
-def intersect(windowsize): 
+def intersect(vectorsize): 
     # merged OK!   
-    # windowsize=40
-    model=Word2Vec(size=windowsize,min_count=2,sg=1)
+    # vectorsize=40
+    model=Word2Vec(size=vectorsize,min_count=2,sg=1)
 
     sentences=LineSentence('corpus/precorpus')
     model.build_vocab(sentences)
     model.train(sentences)
     print 'finish pre-train'
-    model.save('corpus/pretrain'+str(windowsize)+'.model')
-    model.save_word2vec_format('corpus/pretrain'+str(windowsize))
+    model.save('corpus/pretrain'+str(vectorsize)+'.model')
+    model.save_word2vec_format('corpus/pretrain'+str(vectorsize))
     
     # intersect does not delete the bibary tree, but load does
-    # model=Word2Vec.load('corpus/pretrain'+str(windowsize)+'.model')
-    setwordwindow(windowsize)
-    Word2Vec.intersect_word2vec_format(model,'corpus/initindex'+str(windowsize),binary=False)
+    # model=Word2Vec.load('corpus/pretrain'+str(vectorsize)+'.model')
+    setwordwindow(vectorsize)
+    Word2Vec.intersect_word2vec_format(model,'corpus/initindex'+str(vectorsize),binary=False)
     print 'finish intersect'
-    model.save('corpus/merged'+str(windowsize)+'.model')
-    model.save_word2vec_format('corpus/merged'+str(windowsize), binary=False)
+    model.save('corpus/merged'+str(vectorsize)+'.model')
+    model.save_word2vec_format('corpus/merged'+str(vectorsize), binary=False)
 
 
     # model.build_vocab(sentences)
@@ -115,13 +114,29 @@ def intersect(windowsize):
 
     # train_batch_sg(model, sentences, alpha=0.1,work=None)
     # simply use train and set iter=1?
-    model.save('corpus/mergedtrained'+str(windowsize)+'iter'+str(model.iter)+'.model')
-    model.save_word2vec_format('corpus/mergedtrained'+str(windowsize)+'iter'+str(model.iter), binary=False)
+    model.save('corpus/mergedtrained'+str(vectorsize)+'iter'+str(model.iter)+'.model')
+    model.save_word2vec_format('corpus/mergedtrained'+str(vectorsize)+'iter'+str(model.iter), binary=False)
 
 def dis(model):
-    print model.similarity("今天","在")
+    # print model.similarity("今天","在")
+    print model.similarity(u"分手",u"好")
+    print model.similarity(u"分手",u"坏")
 
-def classify():
+def buildvector(model,x,vectorsize):
+    # size=x.length
+    vec=np.zeros(vectorsize)
+    count=0
+    for i in x:
+        try:
+            vec+=model[x]
+            count+=1
+        except KeyError:
+            continue
+    if count!=0:
+        vec/=count 
+    return vec
+
+def classify(model,vectorsize):
     with open('corpus/testclass.txt') as fp:
         # print fp.readlines()[0]
         xl=[]
@@ -131,7 +146,15 @@ def classify():
             xl.append(i[2:-1].split(' ')) 
     y=np.array(yl)
     x=np.array(xl)
-    print y
+    x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0.2)
+    # print y_train
+    vec_train=np.array([buildvector(model,x,vectorsize) for x in x_train])
+    vec_test=np.array([buildvector(model,x,vectorsize) for x in x_test])
+
+    lr=SGDClassifier(loss='log')
+    lr.fit(vec_train,y_train)
+    print lr.score(vec_test,y_test)
+
 
 def main():
     # te()
@@ -139,9 +162,10 @@ def main():
     # intersect(40)
     # setwordwindow(40)
     # Word2Vec.load_word2vec_format('corpus/initindex40',binary=False)
-    # model=Word2Vec.load('corpus/mergedtrained40iter1.model')
-    # dis(model)
-    classify()
+    model=Word2Vec.load('corpus/mergedtrained40iter1.model')
+
+    dis(model)
+    # classify(model,40)
     
 
 if __name__ == '__main__':
